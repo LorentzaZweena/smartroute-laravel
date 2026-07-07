@@ -8,4 +8,12 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+
+    server: {
+        host: '0.0.0.0', 
+        hmr: {
+            host: 'gay-algorithm-select-donation.trycloudflare.com',
+            protocol: 'wss',
+        },
+    },
 });
