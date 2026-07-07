@@ -95,7 +95,7 @@
             if (!origin || !destination) return alert('Mohon isi titik asal dan tujuan terlebih dahulu!');
 
             document.getElementById('btn-submit').innerText = "Memproses Kecerdasan AI...";
-            document.getElementById('ai-output').innerHTML = `<span class="text-cyan-400 font-bold block mb-1">🤖 SPATIAL AI INSIGHT:</span>Sedangkan memproses rute...`;
+            document.getElementById('ai-output').innerHTML = `<span class="text-cyan-400 font-bold block mb-1">🤖 SPATIAL AI INSIGHT:</span>Sedang memproses rute...`;
 
             try {
                 const response = await fetch('/api/calculate-route', {
