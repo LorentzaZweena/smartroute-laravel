@@ -4,8 +4,11 @@
     "outputDirectory": "public",
     "functions": {
         "api/index.php": {
-            "runtime": "vercel-php"
+            "runtime": "vercel-php@0.7.1"
         }
+    },
+    "config": {
+        "nodeVersion": "18.x"
     },
     "routes": [
         {
