@@ -28,15 +28,16 @@ class RouteAiController extends Controller
                 . "{\"text\": \"Tulis narasi analisis kamu di sini\", \"coordinates\": [[106.8250, -6.2070], [106.8494, -6.2099]]}";
 
         try {
-            $response = Http::withHeaders(['Content-Type' => 'application/json'])
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
-                    'contents' => [
-                        ['parts' => [['text' => $prompt]]],
-                    ],
-                    'generationConfig' => [
-                        'responseMimeType' => 'application/json'
-                    ]
-                ]);
+            $response = Http::withoutVerifying()
+            ->withHeaders(['Content-Type' => 'application/json'])
+            ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                'contents' => [
+                    ['parts' => [['text' => $prompt]]],
+                ],
+                'generationConfig' => [
+                    'responseMimeType' => 'application/json'
+                ]
+            ]);
 
             if ($response->failed()) {
                 return response()->json([
