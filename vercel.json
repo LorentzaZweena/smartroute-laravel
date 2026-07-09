@@ -7,9 +7,6 @@
             "runtime": "vercel-php@0.7.1"
         }
     },
-    "config": {
-        "nodeVersion": "18.x"
-    },
     "routes": [
         {
             "src": "/build/(.*)",
