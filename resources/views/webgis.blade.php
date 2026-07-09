@@ -57,7 +57,7 @@
 
         const map = new maplibregl.Map({
             container: 'map',
-            style: `https://api.mapid.io/tiles/v1/styles/default/style.json?key=${MAPID_API_KEY}`,
+            style: `https://geo.mapid.io/tiles/v1/styles/default/style.json?key=${MAPID_API_KEY}`,
             center: [106.8250, -6.2070],
             zoom: 12
         });
