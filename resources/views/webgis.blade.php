@@ -53,13 +53,11 @@
     <div id="map" class="flex-1 h-3/5 md:h-full w-full relative z-0 min-h-[50vh]"></div>
 
     <script>
-        // 1. INPUT ACCESS TOKEN / API KEY MAPID KAMU DISINI
         const MAPID_API_KEY = '0cd87839439d453e83fc7da1547fafdb'; 
 
         const map = new maplibregl.Map({
             container: 'map',
-            // 2. MENGGUNAKAN BASEMAP RESMI DARI CLOUD MAPID SESUAI KETENTUAN JURI
-            style: `https://cloud.mapid.io/tiles/v1/styles/default/style.json?key=${MAPID_API_KEY}`,
+            style: `https://api.mapid.io/tiles/v1/styles/default/style.json?key=${MAPID_API_KEY}`,
             center: [106.8250, -6.2070],
             zoom: 12
         });
@@ -67,7 +65,6 @@
         map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
         map.on('load', () => {
-            // Mendaftarkan Jalur Rute Hasil Analisis AI
             map.addSource('route-source', {
                 type: 'geojson',
                 data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } }
@@ -80,7 +77,6 @@
                 paint: { 'line-color': '#4f46e5', 'line-width': 5 }
             });
 
-            // Mendaftarkan Sumber Data Sampel Struk Go MAPID
             map.addSource('strukgo-source', {
                 type: 'geojson',
                 data: '/data/struk-go.json'
@@ -98,7 +94,6 @@
                 }
             });
 
-            // Event Pop-up ketika titik Struk Go diklik
             map.on('click', 'strukgo-points', (e) => {
                 const coordinates = e.features[0].geometry.coordinates.slice();
                 const props = e.features[0].properties;
@@ -112,7 +107,6 @@
                     .addTo(map);
             });
 
-            // Efek interaksi kursor di peta
             map.on('mouseenter', 'route-line', () => map.getCanvas().style.cursor = 'pointer');
             map.on('mouseleave', 'route-line', () => map.getCanvas().style.cursor = '');
             map.on('mouseenter', 'strukgo-points', () => map.getCanvas().style.cursor = 'pointer');
@@ -121,7 +115,6 @@
             setTimeout(() => { map.resize(); }, 300);
         });
 
-        // Fungsi Toggle untuk menghidupkan/mematikan layer Struk Go dari sidebar
         function toggleStrukGoLayer() {
             const isChecked = document.getElementById('layer-strukgo').checked;
             if (isChecked) {
