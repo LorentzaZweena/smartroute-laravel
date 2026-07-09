@@ -54,10 +54,9 @@
 
     <script>
         const MAPID_API_KEY = '0cd87839439d453e83fc7da1547fafdb'; 
-
         const map = new maplibregl.Map({
             container: 'map',
-            style: `https://geo.mapid.io/tiles/v1/styles/default/style.json?key=${MAPID_API_KEY}`,
+            style: '/mapid-proxy/style.json', 
             center: [106.8250, -6.2070],
             zoom: 12
         });
