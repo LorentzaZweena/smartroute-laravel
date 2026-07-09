@@ -5,6 +5,11 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 
+if (isset($_SERVER['LAMBDA_TASK_ROOT'])) {
+    $_ENV['SESSION_DRIVER'] = 'array';
+    $_ENV['CACHE_STORE'] = 'array';
+}
+
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
