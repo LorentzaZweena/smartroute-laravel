@@ -38,8 +38,8 @@
             <div class="p-3 bg-slate-50 border rounded-lg">
                 <h3 class="font-bold text-xs text-slate-700 mb-2">Lapisan Data Geospasial</h3>
                 <label class="flex items-center space-x-2 text-xs text-slate-600 cursor-pointer">
-                    <input type="checkbox" id="layer-heatmap" checked class="w-4 h-4 text-indigo-600">
-                    <span>Heatmap Kepadatan Penumpang (Data Survei)</span>
+                    <input type="checkbox" id="layer-strukgo" checked onchange="toggleStrukGoLayer()" class="w-4 h-4 text-indigo-600">
+                    <span>Data Transaksi Transportasi (Struk Go MAPID)</span>
                 </label>
             </div>
 
@@ -53,9 +53,13 @@
     <div id="map" class="flex-1 h-3/5 md:h-full w-full relative z-0 min-h-[50vh]"></div>
 
     <script>
+        // 1. INPUT ACCESS TOKEN / API KEY MAPID KAMU DISINI
+        const MAPID_API_KEY = '0cd87839439d453e83fc7da1547fafdb'; 
+
         const map = new maplibregl.Map({
             container: 'map',
-            style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+            // 2. MENGGUNAKAN BASEMAP RESMI DARI CLOUD MAPID SESUAI KETENTUAN JURI
+            style: `https://cloud.mapid.io/tiles/v1/styles/default/style.json?key=${MAPID_API_KEY}`,
             center: [106.8250, -6.2070],
             zoom: 12
         });
@@ -63,6 +67,7 @@
         map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
         map.on('load', () => {
+            // Mendaftarkan Jalur Rute Hasil Analisis AI
             map.addSource('route-source', {
                 type: 'geojson',
                 data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } }
@@ -75,22 +80,61 @@
                 paint: { 'line-color': '#4f46e5', 'line-width': 5 }
             });
 
-            map.on('click', 'route-line', (e) => {
+            // Mendaftarkan Sumber Data Sampel Struk Go MAPID
+            map.addSource('strukgo-source', {
+                type: 'geojson',
+                data: '/data/struk-go.json'
+            });
+
+            map.addLayer({
+                id: 'strukgo-points',
+                type: 'circle',
+                source: 'strukgo-source',
+                paint: {
+                    'circle-radius': 6,
+                    'circle-color': '#ff4757',
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#ffffff'
+                }
+            });
+
+            // Event Pop-up ketika titik Struk Go diklik
+            map.on('click', 'strukgo-points', (e) => {
+                const coordinates = e.features[0].geometry.coordinates.slice();
+                const props = e.features[0].properties;
+
                 new maplibregl.Popup()
-                    .setLngLat(e.lngLat)
-                    .setHTML(`<div class="p-1 text-xs"><strong>💡 Info Jalur AI</strong><br>Rute dihitung berdasarkan efisiensi intermoda dan data penumpukan penumpang terintegrasi.</div>`)
+                    .setLngLat(coordinates)
+                    .setHTML(`<div class="p-1 text-xs">
+                                <strong>📍 ${props.Nama_Tempat || 'Merchant'}</strong><br>
+                                Kategori: ${props.Kategori_Tempat || 'Transportasi'}
+                            </div>`)
                     .addTo(map);
             });
 
+            // Efek interaksi kursor di peta
             map.on('mouseenter', 'route-line', () => map.getCanvas().style.cursor = 'pointer');
             map.on('mouseleave', 'route-line', () => map.getCanvas().style.cursor = '');
+            map.on('mouseenter', 'strukgo-points', () => map.getCanvas().style.cursor = 'pointer');
+            map.on('mouseleave', 'strukgo-points', () => map.getCanvas().style.cursor = '');
+            
             setTimeout(() => { map.resize(); }, 300);
         });
+
+        // Fungsi Toggle untuk menghidupkan/mematikan layer Struk Go dari sidebar
+        function toggleStrukGoLayer() {
+            const isChecked = document.getElementById('layer-strukgo').checked;
+            if (isChecked) {
+                map.setLayoutProperty('strukgo-points', 'visibility', 'visible');
+            } else {
+                map.setLayoutProperty('strukgo-points', 'visibility', 'none');
+            }
+        }
 
         async function prosesRuteAI() {
             const origin = document.getElementById('origin').value;
             const destination = document.getElementById('destination').value;
-            const showHeatmap = document.getElementById('layer-heatmap').checked;
+            const useStrukGo = document.getElementById('layer-strukgo').checked;
 
             if (!origin || !destination) return alert('Mohon isi titik asal dan tujuan terlebih dahulu!');
 
@@ -104,7 +148,7 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
-                    body: JSON.stringify({ origin, destination, showHeatmap })
+                    body: JSON.stringify({ origin, destination, useStrukGo })
                 });
 
                 const rawText = await response.text();
@@ -128,6 +172,7 @@
                 }
 
                 document.getElementById('ai-output').innerHTML = `<span class="text-cyan-400 font-bold block mb-1">🤖 SPATIAL AI INSIGHT:</span>${outputInsight}`;
+                
                 if (data.coordinates && data.coordinates.length > 0) {
                     map.getSource('route-source').setData({
                         type: 'Feature',

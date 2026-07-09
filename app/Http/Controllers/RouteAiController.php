@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\File;
 
 class RouteAiController extends Controller
 {
@@ -11,66 +12,43 @@ class RouteAiController extends Controller
     {
         $origin = $request->input('origin');
         $destination = $request->input('destination');
-        $showHeatmap = $request->input('showHeatmap', false);
-
-        $apiKey = env('GEMINI_KEY');
-        if (!$apiKey) {
-            return response()->json([
-                'text' => '⚠️ Error: GEMINI_KEY belum diisi di file .env proyek kamu!',
-                'coordinates' => [[106.8250, -6.2070]]
-            ]);
-        }
-
-        $prompt = "Kamu adalah AI Spatial WebGIS MAPID 2026. Analisis rute terbaik dari '$origin' ke '$destination'. "
-                . "Status Heatmap Kepadatan: " . ($showHeatmap ? 'AKTIF' : 'MATI') . ". "
-                . "Berikan narasi analisis maksimal 3 kalimat. "
-                . "WAJIB merespon hanya dengan format JSON murni seperti ini tanpa teks lain: "
-                . "{\"text\": \"Tulis narasi analisis kamu di sini\", \"coordinates\": [[106.8250, -6.2070], [106.8494, -6.2099]]}";
-
-        try {
-            $response = Http::withoutVerifying()
-            ->withHeaders(['Content-Type' => 'application/json'])
-            ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
-                'contents' => [
-                    ['parts' => [['text' => $prompt]]],
-                ],
-                'generationConfig' => [
-                    'responseMimeType' => 'application/json'
-                ]
-            ]);
-
-            if ($response->failed()) {
-                return response()->json([
-                    'text' => '❌ Gagal menghubungi Google AI API. Status: ' . $response->status(),
-                    'coordinates' => []
-                ]);
-            }
-
-            $resultData = $response->json();
-            $rawText = $resultData['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        $strukGoPath = public_path('data/struk-go.json');
+        $strukGoData = "";
+        
+        if (File::exists($strukGoPath)) {
+            $geoJson = json_decode(File::get($strukGoPath), true);
+            $features = array_slice($geoJson['features'] ?? [], 0, 10);
             
-            if (empty($rawText)) {
-                return response()->json([
-                    'text' => '⚠️ Google AI merespon, tetapi tidak ada teks analisis yang dihasilkan.',
-                    'coordinates' => []
-                ]);
+            foreach ($features as $f) {
+                $nama = $f['properties']['Nama_Tempat'] ?? 'Merchant';
+                $kategori = $f['properties']['Kategori_Tempat'] ?? 'Umum';
+                $coords = json_encode($f['geometry']['coordinates'] ?? []);
+                $strukGoData .= "- {$nama} (Kategori: {$kategori}) di koordinat {$coords}\n";
             }
-
-            $cleanData = json_decode(trim($rawText), true);
-            if (json_last_error() === JSON_ERROR_NONE && isset($cleanData['text'])) {
-                return response()->json($cleanData);
-            }
-
-            return response()->json([
-                'text' => $rawText,
-                'coordinates' => [[106.8250, -6.2070], [106.8494, -6.2099]]
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'text' => '💥 Terjadi error internal server: ' . $e->getMessage(),
-                'coordinates' => []
-            ]);
         }
+
+        $prompt = "Kamu adalah sistem Kecerdasan Spasial canggih untuk aplikasi SmartRoute.\n";
+        $prompt .= "Tugasmu adalah menganalisis rute intermodal transportasi massal dari '{$origin}' menuju '{$destination}'.\n\n";
+        $prompt .= "Berikut adalah data titik transaksi pengeluaran (Struk Go dari MAPID) yang berada di sekitar wilayah analisis:\n";
+        $prompt .= $strukGoData . "\n";
+        $prompt .= "Berikan analisis rute yang efisien dalam 2-3 kalimat pendek, dan hubungkan bagaimana titik-titik Struk Go tersebut mencerminkan aktivitas ekonomi atau pergerakan penumpang di sekitar rute tersebut.\n";
+        $prompt .= "Format output WAJIB dalam bentuk JSON valid dengan struktur: {\"text\": \"isi analisis kamu\", \"coordinates\": [[lng1, lat1], [lng2, lat2]]}";
+
+        $apiKey = env('GEMINI_API_KEY');
+        $response = Http::post("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={$apiKey}", [
+            'contents' => [
+                ['parts' => [['text' => $prompt]]]
+            ]
+        ]);
+
+        if ($response->successful()) {
+            $result = $response->json();
+            $aiText = $result['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
+            
+            // Return raw text agar fungsi parsing JSON manual di javascript kamu tetap bekerja
+            return response($aiText)->header('Content-Type', 'application/json');
+        }
+
+        return response()->json(['text' => 'Gagal terhubung ke Spatial AI.', 'coordinates' => []], 500);
     }
 }
