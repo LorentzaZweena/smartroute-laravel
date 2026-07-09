@@ -98,7 +98,7 @@
             document.getElementById('ai-output').innerHTML = `<span class="text-cyan-400 font-bold block mb-1">🤖 SPATIAL AI INSIGHT:</span>Sedang memproses rute...`;
 
             try {
-                const response = await fetch('/api/calculate-route', {
+                const response = await fetch('/calculate-route', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

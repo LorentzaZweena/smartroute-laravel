@@ -7,4 +7,4 @@ Route::get('/', function () {
     return view('webgis');
 });
 
-Route::post('/api/calculate-route', [RouteAiController::class, 'calculateRoute']);
+Route::post('/calculate-route', [RouteAiController::class, 'calculateRoute']);
