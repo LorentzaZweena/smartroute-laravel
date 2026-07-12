@@ -18,7 +18,7 @@ class RouteAiController extends Controller
         $coordTujuan = $this->getDynamicCoordinates($destination);
 
         if (!$coordAsal) { $coordAsal = [106.8272, -6.1754]; }
-        if (!$coordTujuan) { $coordTujuan = [106.8456, -6.2088]; } 
+        if (!$coordTujuan) { $coordTujuan = [106.8456, -6.2088]; }
 
         try {
             $strukGoPath = base_path('public/data/struk-go.json');
@@ -72,7 +72,7 @@ class RouteAiController extends Controller
             $response = Http::withHeaders([
                 'User-Agent' => 'SmartRouteSpatialAI/1.0 (RivApp MAPID Competition)'
             ])->get('https://nominatim.openstreetmap.org/search', [
-                'q' => $address . ', Jakarta',
+                'q' => $address . ', Indonesia',
                 'format' => 'json',
                 'limit' => 1
             ]);
