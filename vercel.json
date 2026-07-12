@@ -6,11 +6,19 @@
             "use": "vercel-php@0.7.1"
         },
         {
+            "src": "public/build/**",
+            "use": "@vercel/static"
+        },
+        {
             "src": "public/data/**",
             "use": "@vercel/static"
         }
     ],
     "routes": [
+        {
+            "src": "/build/(.*)",
+            "dest": "/public/build/$1"
+        },
         {
             "src": "/data/(.*)",
             "dest": "/public/data/$1"
