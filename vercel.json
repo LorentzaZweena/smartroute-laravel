@@ -1,6 +1,15 @@
 {
     "version": 2,
-    "framework": "laravel",
+    "builds": [
+        {
+            "src": "api/index.php",
+            "use": "@vercel/php"
+        },
+        {
+            "src": "public/data/**",
+            "use": "@vercel/static"
+        }
+    ],
     "routes": [
         {
             "src": "/data/(.*)",
@@ -8,7 +17,7 @@
         },
         {
             "src": "/(.*)",
-            "dest": "/index.php"
+            "dest": "/api/index.php"
         }
     ]
 }
