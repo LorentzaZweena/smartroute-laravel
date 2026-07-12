@@ -56,7 +56,7 @@
         const MAPID_API_KEY = '0cd87839439d453e83fc7da1547fafdb'; 
         const map = new maplibregl.Map({
             container: 'map',
-            style: `https://api.mapid.io/tiles/v1/style/default?key=${MAPID_API_KEY}`,
+            style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', 
             center: [106.8250, -6.2070],
             zoom: 12
         });
