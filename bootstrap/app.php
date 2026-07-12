@@ -19,34 +19,22 @@ if (isset($_SERVER['VERCEL_ENV']) || env('LOG_CHANNEL') === 'stderr') {
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Support\Facades\URL;
 
-$app = Application::configure(basePath: dirname(__DIR__))
+return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        if (isset($_SERVER['VERCEL_ENV']) || env('APP_ENV') === 'production') {
-            $middleware->alias([
-                'force_https' => function ($request, $next) {
-                    if (!$request->secure() && env('APP_ENV') === 'production') {
-                        return redirect()->secure($request->getRequestUri());
-                    }
-                    URL::forceScheme('https');
-                    return $next($request);
-                },
-            ]);
-            $middleware->append('force_https');
-        }
+
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })->create();
-
-if (isset($storagePath) && is_dir($storagePath)) {
-    $app->useStoragePath($storagePath);
-}
-
-return $app;
+    })
+    ->tap(function ($app) use ($storagePath) {
+        if (isset($storagePath) && is_dir($storagePath)) {
+            $app->useStoragePath($storagePath);
+        }
+    })
+    ->create();
