@@ -1,5 +1,9 @@
 <?php
 
+if (!class_exists('Pdo\Mysql')) {
+    class DummyMysql { const ATTR_SSL_CA = 1014; }
+    class_alias('DummyMysql', 'Pdo\Mysql');
+}
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
