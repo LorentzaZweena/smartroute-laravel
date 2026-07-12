@@ -52,10 +52,17 @@ class RouteAiController extends Controller
         ]);
 
         if ($response->successful()) {
-            $result = $response->json();
-            $aiText = $result['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
-            $cleanJson = preg_replace('/```json|```/', '', $aiText);
-            return response(trim($cleanJson))->header('Content-Type', 'application/json');
+            $result =$response->json();
+            $aiText =$result['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
+            
+            $cleanJson = trim($aiText);$cleanJson = preg_replace('/^```json/', '', $cleanJson);
+            $cleanJson = preg_replace('/^```/', '', $cleanJson);$cleanJson = preg_replace('/```$/', '', $cleanJson);
+            $cleanJson = trim($cleanJson);
+
+            $testData = json_decode($cleanJson, true);
+            if (json_last_error() === JSON_ERROR_NONE && isset($testData['text'])) {
+                return response($cleanJson)->header('Content-Type', 'application/json');
+            }
         }
 
         return response()->json([
